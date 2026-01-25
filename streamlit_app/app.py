@@ -263,7 +263,7 @@ with st.sidebar:
     # 1. Logo Section
     st.markdown('<div class="logo-section">', unsafe_allow_html=True)
     try:
-        st.image("ER Mortality Identification Logo-Streamlit.png", use_container_width=True)
+        st.image("assets/app_logo.png", use_container_width=True)
     except:
         st.markdown("""
         <div style="text-align: center;">
@@ -407,7 +407,7 @@ elif current_page_clean == 'About the project':
     # 2. Methodology Section
     st.markdown('<h2 class="subtopic-header">METHODOLOGY</h2>', unsafe_allow_html=True)
     try:
-        st.image("ER Mortality Analysis Workflow.png", use_container_width=True, caption="ER Mortality Analysis Workflow")
+        st.image("assets/er_mortality_workflow.png", use_container_width=True, caption="ER Mortality Analysis Workflow")
     except:
         st.markdown("""
         <div style="text-align: center; padding: 20px; border: 2px dashed #ccc; border-radius: 8px; margin: 20px 0;">
@@ -776,4 +776,5 @@ elif current_page_clean == 'Test the model':
 
 
         
+
 
