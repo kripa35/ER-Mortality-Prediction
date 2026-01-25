@@ -106,7 +106,8 @@ streamlit run streamlit_app/app.py
 ```
 6. Open the URL displayed in your browser to interact with the model.
 
-> **⚠️ Disclaimer: This app is for research and demonstration purposes only for now.**
+**⚠️ Disclaimer: This app is for research and demonstration purposes only for now.**
+
 > **⚠️ Data is available upon request.**
 
 
