@@ -14,7 +14,7 @@ st.set_page_config(
 @st.cache_resource
 def load_model():
     try:
-        with open("/models/rf_mortality_model.pickle", "rb") as f:
+        with open("rf_mortality_model.pickle", "rb") as f:
             return pickle.load(f)
     except FileNotFoundError:
         st.error("Model file not found. Please ensure 'rf_mortality_model.pickle' is in the same directory.")
@@ -776,3 +776,4 @@ elif current_page_clean == 'Test the model':
 
 
         
+
