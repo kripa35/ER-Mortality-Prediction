@@ -17,7 +17,7 @@ Early identification of high-risk patients in the Emergency Department (ED) is c
 
 The study workflow is summarized below:
 
-![ER Mortality Workflow](assets/ER Mortality Analysis Workflow.png)
+![ER Mortality Workflow](assets/er_mortality_workflow.png)
 
 **Key steps:**
 
