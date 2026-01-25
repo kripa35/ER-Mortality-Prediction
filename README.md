@@ -108,7 +108,7 @@ streamlit run streamlit_app/app.py
 
 **⚠️ Disclaimer: This app is for research and demonstration purposes only for now.**
 
-> **⚠️ Data is available upon request.**
+> **Data is available upon request.**
 
 
 
