@@ -1,7 +1,5 @@
 # ER Mortality Prediction Using Machine Learning
 
-![ER Mortality Workflow](assets/ER Mortality Analysis Workflow.png)
-
 ## Project Overview
 
 Early identification of high-risk patients in the Emergency Department (ED) is critical for timely interventions and resource allocation. This project uses machine learning to predict mortality risk in ED patients based on routinely collected clinical and laboratory features. The final model is a Random Forest classifier that takes the top five rigorously selected features and predicts whether a patient is closer to **mortality** or **survival**.
@@ -19,7 +17,7 @@ Early identification of high-risk patients in the Emergency Department (ED) is c
 
 The study workflow is summarized below:
 
-![ER Mortality Workflow](assets/er_mortality_workflow.png)
+![ER Mortality Workflow](assets/ER Mortality Analysis Workflow.png)
 
 **Key steps:**
 
