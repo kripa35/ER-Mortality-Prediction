@@ -80,3 +80,30 @@ The Random Forest-based five-feature model provides a robust, interpretable tool
 1. Clone the repository:
 ```bash
 git clone https://github.com/<your-username>/ER-Mortality-Prediction.git
+
+2. Navigate into the project folder:
+cd ER-Mortality-Prediction
+
+3. Install required packages:
+pip install -r requirements.txt
+
+4. Create and activate a virtual environment:
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# macOS/Linux
+python3 -m venv venv
+source venv/bin/activate
+
+5. Launch the Streamlit app:
+streamlit run streamlit_app/app.py
+
+6. Open the URL displayed in your browser to interact with the model.
+
+⚠️ Disclaimer: This app is for research and demonstration purposes only for now.
+
+
+
+
+
