@@ -1,6 +1,6 @@
 # ER Mortality Prediction Using Machine Learning
 
-![ER Mortality Workflow](assets/er_mortality_workflow.png)
+![ER Mortality Workflow](assets/ER Mortality Analysis Workflow.png)
 
 ## Project Overview
 
