@@ -264,7 +264,7 @@ with st.sidebar:
     # 1. Logo Section
     st.markdown('<div class="logo-section">', unsafe_allow_html=True)
     try:
-        st.image(assets/app_logo.png", use_container_width=True)
+        st.image("assets/app_logo.png", use_container_width=True)
     except:
         st.markdown("""
         <div style="text-align: center;">
@@ -798,4 +798,5 @@ elif current_page_clean == 'Test the model':
         st.error("Model not loaded. Please check if 'rf_mortality_model.pickle' exists in the directory.")
 
         
+
 
