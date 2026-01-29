@@ -4,6 +4,27 @@ import pickle
 import pandas as pd
 from gsheets_connection import save_to_gsheets
 
+# Debug Section
+st.write("## 🔍 Debug: Checking Secrets")
+
+# Checking if secrets are loaded
+if "gsheets" in st.secrets:
+    st.success("✅ Google Sheets secrets found!")
+    st.write(f"Spreadsheet ID: {st.secrets.gsheets.spreadsheet_id}")
+    st.write(f"Worksheet: {st.secrets.gsheets.worksheet_name}")
+    st.write(f"Client Email: {st.secrets.gsheets.client_email}")
+    
+    # Checking private key (showing first few chars only)
+    if "private_key" in st.secrets.gsheets:
+        pk = st.secrets.gsheets.private_key
+        st.write(f"Private Key (first 50 chars): {pk[:50]}...")
+        st.success("✅ All secrets loaded correctly!")
+    else:
+        st.error("❌ Missing private_key in secrets")
+else:
+    st.error("❌ No 'gsheets' section found in secrets")
+    st.info("Make sure you've added secrets in Streamlit Cloud dashboard")
+
 # Page config
 st.set_page_config(
     page_title="ER Mortality Identification",
@@ -798,5 +819,6 @@ elif current_page_clean == 'Test the model':
         st.error("Model not loaded. Please check if 'rf_mortality_model.pickle' exists in the directory.")
 
         
+
 
 
