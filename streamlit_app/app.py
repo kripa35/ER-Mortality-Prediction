@@ -654,7 +654,7 @@ elif current_page_clean == 'Test the model':
     )
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Running model inference based on user inputs
+        # Running model inference based on user inputs
     if predict_button and package:
         try:
             # Creating input dataframe
@@ -673,36 +673,18 @@ elif current_page_clean == 'Test the model':
             proba = model.predict_proba(input_df)[:, 1][0]
             prediction = int(proba >= threshold)
 
-           # =========== DEBUG TEST BUTTON - FIXED INDENTATION ===========
-            st.markdown("---")
-            st.subheader("🔧 Debug Connection")
-
-            if st.button("🔍 Test Google Sheets Connection"):
-                test_data = {
-                    "lactate": 3.5,
-                    "urea": 28,
-                    "creatinine": 1.8,
-                    "platelets": 180,
-                    "resuscitation": "Fluid, Vasopressors",
-                    "prediction": "TEST CONNECTION"
-                }
-    
-                st.info("Testing connection with sample data...")
-                success = save_to_gsheets(test_data)
-    
-                if success:
-                    st.success("🎉 Connection test PASSED! Check your Google Sheet.")
-                else:
-                    st.error("Connection test FAILED. Check error messages above.")
+            # Saving to Google Sheets            
+            risk_level = "HIGH RISK" if prediction == 1 else "LOW RISK"
+            prediction_text = "HIGH RISK" if prediction == 1 else "LOW RISK"
         
             # Saving to Google Sheets
             data_to_save = {
-            "lactate": lactate,
-            "urea": urea,
-            "creatinine": creatinine,
-            "platelets": platelets,
-            "resuscitation": resus_value,
-            "prediction": prediction_text, 
+                "lactate": lactate,
+                "urea": urea,
+                "creatinine": creatinine,
+                "platelets": platelets,
+                "resuscitation": resus_value,
+                "prediction": prediction_text, 
             }
         
             # Showing saving indicator
@@ -713,6 +695,7 @@ elif current_page_clean == 'Test the model':
                 st.success("✅ Data saved to Google Sheets successfully!")
             else:
                 st.warning("Prediction completed, but could not save to Google Sheets.")
+            
             # Displaying results
             st.markdown("---")
             st.markdown('<h3 style="text-align: center;">Prediction Results</h3>', unsafe_allow_html=True)
@@ -836,7 +819,43 @@ elif current_page_clean == 'Test the model':
     elif predict_button and not package:
         st.error("Model not loaded. Please check if 'rf_mortality_model.pickle' exists in the directory.")
 
+# =========== ADD DEBUG SECTION OUTSIDE THE MAIN LOGIC ===========
+st.markdown("---")
+st.subheader("🔧 Debug Tools")
+
+debug_col1, debug_col2 = st.columns(2)
+
+with debug_col1:
+    if st.button("🧪 Test Google Sheets Connection", key="debug_test_gsheets"):
+        test_data = {
+            "lactate": 3.5,
+            "urea": 28,
+            "creatinine": 1.8,
+            "platelets": 180,
+            "resuscitation": "Fluid, Vasopressors",
+            "prediction": "DEBUG TEST " + datetime.now().strftime("%H:%M:%S")
+        }
+        with st.spinner("Testing connection..."):
+            success = save_to_gsheets(test_data)
+        if success:
+            st.success("🎉 Connection test PASSED! Check your Google Sheet.")
+        else:
+            st.error("❌ Connection test FAILED.")
+
+with debug_col2:
+    if st.button("📋 Show Secrets Configuration", key="debug_secrets"):
+        st.write("### Current Secrets in st.secrets.gsheets:")
+        if "gsheets" in st.secrets:
+            # Display formatted secrets (hide full private key)
+            secrets_display = dict(st.secrets.gsheets)
+            if "private_key" in secrets_display:
+                pk = secrets_display["private_key"]
+                secrets_display["private_key"] = f"{pk[:50]}... [truncated]"
+            st.json(secrets_display)
+        else:
+            st.error("No gsheets secrets found!")
         
+
 
 
 
