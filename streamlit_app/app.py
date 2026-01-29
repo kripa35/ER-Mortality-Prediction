@@ -2,6 +2,7 @@ import streamlit as st
 from datetime import datetime
 import pickle
 import pandas as pd
+from gsheets_connection import save_to_gsheets
 
 # Page config
 st.set_page_config(
@@ -14,7 +15,7 @@ st.set_page_config(
 @st.cache_resource
 def load_model():
     try:
-        with open("streamlit_app/rf_mortality_model.pickle", "rb") as f:
+        with open("rf_mortality_model.pickle", "rb") as f:
             return pickle.load(f)
     except FileNotFoundError:
         st.error("Model file not found. Please ensure 'rf_mortality_model.pickle' is in the same directory.")
@@ -263,7 +264,7 @@ with st.sidebar:
     # 1. Logo Section
     st.markdown('<div class="logo-section">', unsafe_allow_html=True)
     try:
-        st.image("assets/app_logo.png", use_container_width=True)
+        st.image("ER Mortality Identification Logo-Streamlit.png", use_container_width=True)
     except:
         st.markdown("""
         <div style="text-align: center;">
@@ -407,7 +408,7 @@ elif current_page_clean == 'About the project':
     # 2. Methodology Section
     st.markdown('<h2 class="subtopic-header">METHODOLOGY</h2>', unsafe_allow_html=True)
     try:
-        st.image("assets/er_mortality_workflow.png", use_container_width=True, caption="ER Mortality Analysis Workflow")
+        st.image("assets\ER Mortality Analysis Workflow.png", use_container_width=True, caption="ER Mortality Analysis Workflow")
     except:
         st.markdown("""
         <div style="text-align: center; padding: 20px; border: 2px dashed #ccc; border-radius: 8px; margin: 20px 0;">
@@ -560,7 +561,7 @@ elif current_page_clean == 'Test the model':
 
     # Test Model Page Content
     st.markdown('<h1 class="main-header">TEST THE MODEL</h1>', unsafe_allow_html=True)
-    
+
     st.markdown("""
     <div style="margin-bottom: 30px; line-height: 1.7;">
     Use this interactive tool to predict mortality risk for ER patients based on the top 5 clinical features 
@@ -568,7 +569,7 @@ elif current_page_clean == 'Test the model':
     to see the prediction.
     </div>
     """, unsafe_allow_html=True)
-    
+
     col1, col2 = st.columns(2)
     
     with col1:
@@ -650,7 +651,29 @@ elif current_page_clean == 'Test the model':
             # Getting prediction
             proba = model.predict_proba(input_df)[:, 1][0]
             prediction = int(proba >= threshold)
-            
+
+            # Saving to Google Sheets            
+            risk_level = "HIGH RISK" if prediction == 1 else "LOW RISK"
+            prediction_text = "HIGH RISK" if prediction == 1 else "LOW RISK"
+        
+            # Saving to Google Sheets
+            data_to_save = {
+            "lactate": lactate,
+            "urea": urea,
+            "creatinine": creatinine,
+            "platelets": platelets,
+            "resuscitation": resus_value,
+            "prediction": prediction_text, 
+            }
+        
+            # Showing saving indicator
+            with st.spinner("Saving data to Google Sheets..."):
+                save_success = save_to_gsheets(data_to_save)
+        
+            if save_success:
+                st.success("✅ Data saved to Google Sheets successfully!")
+            else:
+                st.warning("Prediction completed, but could not save to Google Sheets.")
             # Displaying results
             st.markdown("---")
             st.markdown('<h3 style="text-align: center;">Prediction Results</h3>', unsafe_allow_html=True)
@@ -774,8 +797,4 @@ elif current_page_clean == 'Test the model':
     elif predict_button and not package:
         st.error("Model not loaded. Please check if 'rf_mortality_model.pickle' exists in the directory.")
 
-
         
-
-
-
