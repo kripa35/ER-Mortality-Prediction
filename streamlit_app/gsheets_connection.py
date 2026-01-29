@@ -5,7 +5,7 @@ from datetime import datetime
 import os
 
 def get_gsheets_connection():
-    """Connect to Google Sheets using service account credentials"""
+    """Connectting to Google Sheets using service account credentials"""
     try:
         # Clearing any previous messages
         if 'gsheet_debug' not in st.session_state:
@@ -168,4 +168,5 @@ def save_to_gsheets(data):
             
     except Exception as e:
         st.error(f"❌ Error saving to Google Sheets: {str(e)}")
+
         return False
