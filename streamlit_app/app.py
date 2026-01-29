@@ -673,9 +673,27 @@ elif current_page_clean == 'Test the model':
             proba = model.predict_proba(input_df)[:, 1][0]
             prediction = int(proba >= threshold)
 
-            # Saving to Google Sheets            
-            risk_level = "HIGH RISK" if prediction == 1 else "LOW RISK"
-            prediction_text = "HIGH RISK" if prediction == 1 else "LOW RISK"
+           # =========== DEBUG TEST BUTTON - FIXED INDENTATION ===========
+            st.markdown("---")
+            st.subheader("🔧 Debug Connection")
+
+            if st.button("🔍 Test Google Sheets Connection"):
+                test_data = {
+                    "lactate": 3.5,
+                    "urea": 28,
+                    "creatinine": 1.8,
+                    "platelets": 180,
+                    "resuscitation": "Fluid, Vasopressors",
+                    "prediction": "TEST CONNECTION"
+                }
+    
+                st.info("Testing connection with sample data...")
+                success = save_to_gsheets(test_data)
+    
+                if success:
+                    st.success("🎉 Connection test PASSED! Check your Google Sheet.")
+                else:
+                    st.error("Connection test FAILED. Check error messages above.")
         
             # Saving to Google Sheets
             data_to_save = {
@@ -819,6 +837,7 @@ elif current_page_clean == 'Test the model':
         st.error("Model not loaded. Please check if 'rf_mortality_model.pickle' exists in the directory.")
 
         
+
 
 
 
