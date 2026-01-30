@@ -15,7 +15,7 @@ st.set_page_config(
 @st.cache_resource
 def load_model():
     try:
-        with open("assets/app_logo.png", "rb") as f:
+        with open("streamlit_app/rf_mortality_model.pickle", "rb") as f:
             return pickle.load(f)
     except FileNotFoundError:
         st.error("Model file not found. Please ensure 'rf_mortality_model.pickle' is in the same directory.")
@@ -264,7 +264,7 @@ with st.sidebar:
     # 1. Logo Section
     st.markdown('<div class="logo-section">', unsafe_allow_html=True)
     try:
-        st.image("ER Mortality Identification Logo-Streamlit.png", use_container_width=True)
+        st.image("assets/app_logo.png", use_container_width=True)
     except:
         st.markdown("""
         <div style="text-align: center;">
@@ -796,3 +796,4 @@ elif current_page_clean == 'Test the model':
     
     elif predict_button and not package:
         st.error("Model not loaded. Please check if 'rf_mortality_model.pickle' exists in the directory.")
+
