@@ -4,27 +4,6 @@ import pickle
 import pandas as pd
 from gsheets_connection import save_to_gsheets
 
-# Debug Section
-st.write("## 🔍 Debug: Checking Secrets")
-
-# Checking if secrets are loaded
-if "gsheets" in st.secrets:
-    st.success("✅ Google Sheets secrets found!")
-    st.write(f"Spreadsheet ID: {st.secrets.gsheets.spreadsheet_id}")
-    st.write(f"Worksheet: {st.secrets.gsheets.worksheet_name}")
-    st.write(f"Client Email: {st.secrets.gsheets.client_email}")
-    
-    # Checking private key (showing first few chars only)
-    if "private_key" in st.secrets.gsheets:
-        pk = st.secrets.gsheets.private_key
-        st.write(f"Private Key (first 50 chars): {pk[:50]}...")
-        st.success("✅ All secrets loaded correctly!")
-    else:
-        st.error("❌ Missing private_key in secrets")
-else:
-    st.error("❌ No 'gsheets' section found in secrets")
-    st.info("Make sure you've added secrets in Streamlit Cloud dashboard")
-
 # Page config
 st.set_page_config(
     page_title="ER Mortality Identification",
@@ -36,7 +15,7 @@ st.set_page_config(
 @st.cache_resource
 def load_model():
     try:
-        with open("streamlit_app/rf_mortality_model.pickle", "rb") as f:
+        with open("assets/app_logo.png", "rb") as f:
             return pickle.load(f)
     except FileNotFoundError:
         st.error("Model file not found. Please ensure 'rf_mortality_model.pickle' is in the same directory.")
@@ -98,7 +77,7 @@ st.markdown("""
     flex-shrink: 0;
 }
 
-/* Button styling - FONT SIZE 14PX FOR ALL BUTTONS */
+/* Button styling */
 .stButton > button {
     width: 100%;
     border-radius: 8px;
@@ -115,7 +94,7 @@ st.markdown("""
     background-color: rgba(0, 71, 140, 0.1);
 }
 
-/* Primary button (active page) - KEEP BLUE COLOR */
+/* Primary button (active page) */
 .stButton > button[kind="primary"] {
     background-color: #00478c !important;
     color: white !important;
@@ -133,7 +112,7 @@ st.markdown("""
     text-align: justify;
 }
 
-/* About page specific styling */
+/* About page styling */
 .subtopic-header {
     color: #00478c;
     font-size: 22px !important;
@@ -285,7 +264,7 @@ with st.sidebar:
     # 1. Logo Section
     st.markdown('<div class="logo-section">', unsafe_allow_html=True)
     try:
-        st.image("assets/app_logo.png", use_container_width=True)
+        st.image("ER Mortality Identification Logo-Streamlit.png", use_container_width=True)
     except:
         st.markdown("""
         <div style="text-align: center;">
@@ -654,7 +633,7 @@ elif current_page_clean == 'Test the model':
     )
     st.markdown('</div>', unsafe_allow_html=True)
     
-        # Running model inference based on user inputs
+    # Running model inference based on user inputs
     if predict_button and package:
         try:
             # Creating input dataframe
@@ -679,12 +658,12 @@ elif current_page_clean == 'Test the model':
         
             # Saving to Google Sheets
             data_to_save = {
-                "lactate": lactate,
-                "urea": urea,
-                "creatinine": creatinine,
-                "platelets": platelets,
-                "resuscitation": resus_value,
-                "prediction": prediction_text, 
+            "lactate": lactate,
+            "urea": urea,
+            "creatinine": creatinine,
+            "platelets": platelets,
+            "resuscitation": resus_value,
+            "prediction": prediction_text, 
             }
         
             # Showing saving indicator
@@ -695,7 +674,6 @@ elif current_page_clean == 'Test the model':
                 st.success("✅ Data saved to Google Sheets successfully!")
             else:
                 st.warning("Prediction completed, but could not save to Google Sheets.")
-            
             # Displaying results
             st.markdown("---")
             st.markdown('<h3 style="text-align: center;">Prediction Results</h3>', unsafe_allow_html=True)
@@ -818,45 +796,3 @@ elif current_page_clean == 'Test the model':
     
     elif predict_button and not package:
         st.error("Model not loaded. Please check if 'rf_mortality_model.pickle' exists in the directory.")
-
-# =========== ADD DEBUG SECTION OUTSIDE THE MAIN LOGIC ===========
-st.markdown("---")
-st.subheader("🔧 Debug Tools")
-
-debug_col1, debug_col2 = st.columns(2)
-
-with debug_col1:
-    if st.button("🧪 Test Google Sheets Connection", key="debug_test_gsheets"):
-        test_data = {
-            "lactate": 3.5,
-            "urea": 28,
-            "creatinine": 1.8,
-            "platelets": 180,
-            "resuscitation": "Fluid, Vasopressors",
-            "prediction": "DEBUG TEST " + datetime.now().strftime("%H:%M:%S")
-        }
-        with st.spinner("Testing connection..."):
-            success = save_to_gsheets(test_data)
-        if success:
-            st.success("🎉 Connection test PASSED! Check your Google Sheet.")
-        else:
-            st.error("❌ Connection test FAILED.")
-
-with debug_col2:
-    if st.button("📋 Show Secrets Configuration", key="debug_secrets"):
-        st.write("### Current Secrets in st.secrets.gsheets:")
-        if "gsheets" in st.secrets:
-            # Display formatted secrets (hide full private key)
-            secrets_display = dict(st.secrets.gsheets)
-            if "private_key" in secrets_display:
-                pk = secrets_display["private_key"]
-                secrets_display["private_key"] = f"{pk[:50]}... [truncated]"
-            st.json(secrets_display)
-        else:
-            st.error("No gsheets secrets found!")
-        
-
-
-
-
-
