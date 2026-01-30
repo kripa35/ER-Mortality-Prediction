@@ -2,125 +2,170 @@ import gspread
 from google.oauth2.service_account import Credentials
 import streamlit as st
 from datetime import datetime
+import os
 
-def save_to_gsheets(data):
-    """Save prediction data to Google Sheets with detailed debugging"""
+def get_gsheets_connection():
+    """Connect to Google Sheets using service account credentials"""
     try:
-        # Show start of process
-        st.info("🔄 Starting Google Sheets save process...")
+        # Clearing any previous messages
+        if 'gsheet_debug' not in st.session_state:
+            st.session_state.gsheet_debug = []
         
-        # 1. Check secrets
-        if "gsheets" not in st.secrets:
-            st.error("❌ ERROR: No 'gsheets' section in secrets")
-            return False
-        
-        config = st.secrets.gsheets
-        st.success(f"✅ Secrets loaded: Spreadsheet ID: {config.spreadsheet_id}")
-        
-        # 2. Create credentials
-        try:
-            scope = ['https://www.googleapis.com/auth/spreadsheets']
-            
-            # Show private key info (first part only)
-            pk_preview = config.private_key[:50] if config.private_key else "None"
-            st.info(f"🔑 Private key preview: {pk_preview}...")
-            
-            # Prepare credentials
-            creds_dict = {
-                "type": "service_account",
-                "project_id": "ed-prediction",
-                "private_key": config.private_key.replace('\\n', '\n'),
-                "client_email": config.client_email,
-                "token_uri": "https://oauth2.googleapis.com/token",
-            }
-            
-            credentials = Credentials.from_service_account_info(creds_dict, scopes=scope)
-            st.success("✅ Credentials created successfully")
-            
-        except Exception as e:
-            st.error(f"❌ ERROR creating credentials: {str(e)}")
-            return False
-        
-        # 3. Authorize
-        try:
-            client = gspread.authorize(credentials)
-            st.success("✅ Google Sheets client authorized")
-        except Exception as e:
-            st.error(f"❌ ERROR authorizing client: {str(e)}")
-            return False
-        
-        # 4. Open spreadsheet
-        try:
-            spreadsheet = client.open_by_key(config.spreadsheet_id)
-            st.success(f"✅ Spreadsheet opened: '{spreadsheet.title}'")
-        except gspread.exceptions.SpreadsheetNotFound:
-            st.error(f"❌ ERROR: Spreadsheet not found with ID: {config.spreadsheet_id}")
-            st.info("Check: 1) Spreadsheet ID is correct 2) Service account has access")
-            return False
-        except Exception as e:
-            st.error(f"❌ ERROR opening spreadsheet: {str(e)}")
-            return False
-        
-        # 5. Get worksheet
-        try:
-            worksheet = spreadsheet.worksheet(config.worksheet_name)
-            st.success(f"✅ Worksheet found: '{worksheet.title}'")
-        except gspread.exceptions.WorksheetNotFound:
-            st.error(f"❌ ERROR: Worksheet '{config.worksheet_name}' not found")
-            
-            # List available worksheets
-            st.info("📋 Available worksheets:")
-            try:
-                all_worksheets = spreadsheet.worksheets()
-                for i, ws in enumerate(all_worksheets):
-                    st.info(f"  {i+1}. '{ws.title}'")
-                
-                # Try first worksheet
-                worksheet = all_worksheets[0]
-                st.warning(f"⚠️ Using first worksheet instead: '{worksheet.title}'")
-            except Exception as e:
-                st.error(f"❌ Could not list worksheets: {str(e)}")
-                return False
-        except Exception as e:
-            st.error(f"❌ ERROR accessing worksheet: {str(e)}")
-            return False
-        
-        # 6. Prepare data
-        row_data = [
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # TimeStamp
-            str(data.get("lactate", "")),                  # Lactate (in ABG)
-            str(data.get("urea", "")),                     # Urea (mg/dl)
-            str(data.get("creatinine", "")),               # Creatinine (mg/dl)
-            str(data.get("platelets", "")),                # Platelets (10 ^ 6)
-            data.get("resuscitation", "None"),             # Resuscitation Received
-            data.get("prediction", "")                     # Prediction
+        # Defining the scope
+        scope = [
+            'https://www.googleapis.com/auth/spreadsheets',
+            'https://www.googleapis.com/auth/drive'
         ]
         
-        st.info(f"📊 Data to save: {row_data}")
+        # Trying to load credentials from JSON file
+        json_files = ['google_credentials.json', 'service_account.json', 'credentials.json']
+        credentials = None
+        json_file_used = None
         
-        # 7. Save data
+        for json_file in json_files:
+            if os.path.exists(json_file):
+                try:
+                    credentials = Credentials.from_service_account_file(json_file, scopes=scope)
+                    json_file_used = json_file
+                    st.session_state.gsheet_debug.append(f"✅ Using credentials from: {json_file}")
+                    break
+                except Exception as e:
+                    st.session_state.gsheet_debug.append(f"⚠️ Failed {json_file}: {str(e)}")
+        
+        if credentials is None:
+            st.session_state.gsheet_debug.append("❌ No valid credentials file found")
+            return None
+        
+        # Authorizing gspread
+        client = gspread.authorize(credentials)
+        st.session_state.gsheet_debug.append("✅ Google authentication successful")
+        
+        # Getting spreadsheet ID from secrets or use default
+        if "gsheets" in st.secrets:
+            spreadsheet_id = st.secrets["gsheets"]["spreadsheet_id"]
+        else:
+            spreadsheet_id = "1urV5GP7aH5bD-hcez7EUpECIRABQQ3QbgaHSAwNR4M0"
+        
+        # Opening the spreadsheet
         try:
-            # Get current row count before save
-            current_rows = len(worksheet.get_all_values())
-            st.info(f"📈 Current rows in sheet: {current_rows}")
+            spreadsheet = client.open_by_key(spreadsheet_id)
+            st.session_state.gsheet_debug.append(f"✅ Spreadsheet opened: '{spreadsheet.title}'")
+        except Exception as e:
+            st.session_state.gsheet_debug.append(f"❌ Failed to open spreadsheet: {str(e)}")
+            return None
+        
+        # Getting worksheet name from secrets or use default
+        if "gsheets" in st.secrets and "worksheet_name" in st.secrets["gsheets"]:
+            target_worksheet_name = st.secrets["gsheets"]["worksheet_name"]
+        else:
+            target_worksheet_name = "streamlit-data_entry_er"
+        
+        st.session_state.gsheet_debug.append(f"Looking for worksheet: '{target_worksheet_name}'")
+        
+        # Listing all worksheets for debugging
+        all_worksheets = spreadsheet.worksheets()
+        st.session_state.gsheet_debug.append(f"Available worksheets ({len(all_worksheets)} total):")
+        
+        for i, ws in enumerate(all_worksheets):
+            st.session_state.gsheet_debug.append(f"  {i+1}. '{ws.title}'")
+        
+        # Trying to find the worksheet - EXACT MATCH
+        worksheet_found = None
+        
+        # First try: Exact match
+        for ws in all_worksheets:
+            if ws.title == target_worksheet_name:
+                worksheet_found = ws
+                st.session_state.gsheet_debug.append(f"✅ Found exact match: '{ws.title}'")
+                break
+        
+        # Second try: Case-insensitive match
+        if worksheet_found is None:
+            for ws in all_worksheets:
+                if ws.title.lower() == target_worksheet_name.lower():
+                    worksheet_found = ws
+                    st.session_state.gsheet_debug.append(f"✅ Found case-insensitive match: '{ws.title}'")
+                    break
+        
+        # Third try: Contains match
+        if worksheet_found is None:
+            for ws in all_worksheets:
+                if target_worksheet_name.lower() in ws.title.lower():
+                    worksheet_found = ws
+                    st.session_state.gsheet_debug.append(f"✅ Found partial match: '{ws.title}'")
+                    break
+        
+        if worksheet_found is None:
+            st.session_state.gsheet_debug.append(f"❌ Worksheet '{target_worksheet_name}' not found!")
+            # Using first worksheet as fallback
+            if all_worksheets:
+                worksheet_found = all_worksheets[0]
+                st.session_state.gsheet_debug.append(f"⚠️ Using first worksheet instead: '{worksheet_found.title}'")
+            else:
+                st.session_state.gsheet_debug.append("❌ No worksheets found in spreadsheet")
+                return None
+        
+        return worksheet_found
+    
+    except Exception as e:
+        error_msg = f"❌ Connection error: {str(e)}"
+        if 'gsheet_debug' in st.session_state:
+            st.session_state.gsheet_debug.append(error_msg)
+        return None
+
+def save_to_gsheets(data):
+    """Save prediction data to Google Sheets"""
+    try:
+        # Clearing previous debug messages at start of save attempt
+        st.session_state.gsheet_debug = []
+        
+        # Get worksheet connection
+        worksheet = get_gsheets_connection()
+        
+        if worksheet:
+            # Showing debug info
+            with st.expander("🔧 Google Sheets Connection Debug Info", expanded=False):
+                for msg in st.session_state.gsheet_debug:
+                    if "✅" in msg:
+                        st.success(msg)
+                    elif "❌" in msg or "Failed" in msg:
+                        st.error(msg)
+                    elif "⚠️" in msg:
+                        st.warning(msg)
+                    else:
+                        st.info(msg)
             
-            # Append row
+            # Preparing data row - MATCHING YOUR GOOGLE SHEETS COLUMNS
+            row_data = [
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # TimeStamp
+                str(data.get("lactate", "")),                  # Lactate (in ABG)
+                str(data.get("urea", "")),                     # Urea (mg/dl)
+                str(data.get("creatinine", "")),               # Creatinine (mg/dl)
+                str(data.get("platelets", "")),                # Platelets (10 ^ 6)
+                data.get("resuscitation", "None"),             # Resuscitation Received
+                data.get("prediction", ""),                    # Prediction
+                str(data.get("probability", "")),              # Probability Score
+                data.get("risk_level", "")                     # Risk Level
+            ]
+            
+            st.info(f"📤 Saving data to row {len(worksheet.get_all_values()) + 1}")
+            
+            # Appendding the row
             worksheet.append_row(row_data)
-            st.success("✅ Row appended to worksheet")
             
-            # Verify save
-            new_rows = len(worksheet.get_all_values())
-            if new_rows > current_rows:
-                st.success(f"✅ VERIFIED: New row count: {new_rows} (Added {new_rows - current_rows} row)")
+            # Verifying the save
+            all_data = worksheet.get_all_values()
+            last_row = all_data[-1] if all_data else []
+            
+            if last_row and last_row[0].startswith(datetime.now().strftime("%Y-%m-%d")):
                 return True
             else:
-                st.warning("⚠️ Row count didn't increase - data may not have saved")
+                st.warning("⚠️ Data might not have saved correctly")
                 return False
-                
-        except Exception as e:
-            st.error(f"❌ ERROR saving data: {str(e)}")
+        else:
+            st.error("❌ Could not connect to Google Sheets")
             return False
             
     except Exception as e:
-        st.error(f"❌ UNEXPECTED ERROR: {str(e)}")
+        st.error(f"❌ Error saving to Google Sheets: {str(e)}")
         return False
