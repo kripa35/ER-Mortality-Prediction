@@ -2,7 +2,6 @@ import streamlit as st
 from datetime import datetime
 import pickle
 import pandas as pd
-from gsheets_connection import save_to_gsheets
 
 # Page config
 st.set_page_config(
@@ -77,7 +76,7 @@ st.markdown("""
     flex-shrink: 0;
 }
 
-/* Button styling */
+/* Button styling - FONT SIZE 14PX FOR ALL BUTTONS */
 .stButton > button {
     width: 100%;
     border-radius: 8px;
@@ -94,7 +93,7 @@ st.markdown("""
     background-color: rgba(0, 71, 140, 0.1);
 }
 
-/* Primary button (active page) */
+/* Primary button (active page) - KEEP BLUE COLOR */
 .stButton > button[kind="primary"] {
     background-color: #00478c !important;
     color: white !important;
@@ -112,7 +111,7 @@ st.markdown("""
     text-align: justify;
 }
 
-/* About page styling */
+/* About page specific styling */
 .subtopic-header {
     color: #00478c;
     font-size: 22px !important;
@@ -561,7 +560,7 @@ elif current_page_clean == 'Test the model':
 
     # Test Model Page Content
     st.markdown('<h1 class="main-header">TEST THE MODEL</h1>', unsafe_allow_html=True)
-
+    
     st.markdown("""
     <div style="margin-bottom: 30px; line-height: 1.7;">
     Use this interactive tool to predict mortality risk for ER patients based on the top 5 clinical features 
@@ -569,7 +568,7 @@ elif current_page_clean == 'Test the model':
     to see the prediction.
     </div>
     """, unsafe_allow_html=True)
-
+    
     col1, col2 = st.columns(2)
     
     with col1:
@@ -651,29 +650,7 @@ elif current_page_clean == 'Test the model':
             # Getting prediction
             proba = model.predict_proba(input_df)[:, 1][0]
             prediction = int(proba >= threshold)
-
-            # Saving to Google Sheets            
-            risk_level = "HIGH RISK" if prediction == 1 else "LOW RISK"
-            prediction_text = "HIGH RISK" if prediction == 1 else "LOW RISK"
-        
-            # Saving to Google Sheets
-            data_to_save = {
-            "lactate": lactate,
-            "urea": urea,
-            "creatinine": creatinine,
-            "platelets": platelets,
-            "resuscitation": resus_value,
-            "prediction": prediction_text, 
-            }
-        
-            # Showing saving indicator
-            with st.spinner("Saving data to Google Sheets..."):
-                save_success = save_to_gsheets(data_to_save)
-        
-            if save_success:
-                st.success("✅ Data saved to Google Sheets successfully!")
-            else:
-                st.warning("Prediction completed, but could not save to Google Sheets.")
+            
             # Displaying results
             st.markdown("---")
             st.markdown('<h3 style="text-align: center;">Prediction Results</h3>', unsafe_allow_html=True)
@@ -796,4 +773,10 @@ elif current_page_clean == 'Test the model':
     
     elif predict_button and not package:
         st.error("Model not loaded. Please check if 'rf_mortality_model.pickle' exists in the directory.")
+
+
+        
+
+
+
 
