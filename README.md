@@ -106,7 +106,7 @@ streamlit run streamlit_app/app.py
 ```
 6. Open the URL displayed in your browser to interact with the model.
 
-**❗Make sure that all the necessary files related to app.py such as the pickle file of the model and the logo are in the same folder as the present in the same folder as the app.py while running it locally.**
+**❗Make sure that all the necessary files related to app.py such as the pickle file of the model and the logo are in the same folder as app.py while running it locally.**
 
 **⚠️ Disclaimer: This app is for research and demonstration purposes only for now.**
 
